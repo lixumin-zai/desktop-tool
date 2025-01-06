@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SVG Transparent Window</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      /* -webkit-app-region: drag;  */
+    }
+
+    #root {
+      width: 100%;
+      height: 100%;
+      background-color: rgb(0, 128, 255); /* 半透明背景 */
+      border-radius: 50%; 
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 20px;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div id="root">嘻嘻</div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+    const svgElement = document.getElementById('root');
+
+    // 监听鼠标进入SVG区域
+    svgElement.addEventListener('mouseenter', () => {
+      ipcRenderer.send('set-ignore-mouse-events', false); // 不穿透
+      console.log("123");
+    });
+
+    // 监听鼠标离开SVG区域
+    svgElement.addEventListener('mouseleave', () => {
+      ipcRenderer.send('set-ignore-mouse-events', true, { forward: true }); // 穿透透明区域
+      console.log('456');
+    });
+    svgElement.addEventListener('mousedown', (e) => {
+      if (e.buttons == 1) {
+        winMoveStart() //开始刷新屏幕位置
+        svgElement.addEventListener('mousemove', mousemove)
+      }
+    })
+    //按下松开鼠标鼠标
+    svgElement.addEventListener('mouseup', () => {
+      winMoveEnd() //停止刷新屏幕位置
+      svgElement.removeEventListener('mousemove', mousemove)
+    })
+
+    function winMoveStart() {
+      ipcRenderer.send('winMove-start')
+    }
+    function winMoveEnd() {
+      ipcRenderer.send('winMove-end')
+    }
+
+    //补丁:鼠标在窗口外松开不触发mouseup，鼠标回到窗口没按着左键停止
+    function mousemove(e) {
+      if (e.buttons != 1) {
+        winMoveEnd()
+        svgElement.removeEventListener('mousemove', mousemove)
+      }
+    }
+    let resizeInterval;
+
+  window.addEventListener('keydown', (event) => {
+    if (event.key === "=") {
+      if (!resizeInterval) {
+        // 如果当前没有resize操作，开始循环
+        console.log('Start increasing window size');
+        resizeInterval = setInterval(() => {
+          ipcRenderer.send('resize-window', 10); // 每次增大20像素
+        }, 50); // 每隔100ms增大一次窗口
+      }
+    } else if (event.key === "-") {
+      if (!resizeInterval) {
+        console.log('Start decreasing window size');
+        resizeInterval = setInterval(() => {
+          ipcRenderer.send('resize-window', -10); // 每次减小20像素
+        }, 50);
+      }
+    }
+  });
+
+  window.addEventListener('keyup', (event) => {
+    if (event.key === "=" || event.key === "-") {
+      console.log('Stop resizing window');
+      clearInterval(resizeInterval); // 停止调整窗口大小
+      resizeInterval = null; // 重置状态
+    }
+  });
+
+  </script>
+</body>
+</html>
