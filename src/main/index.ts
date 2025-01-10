@@ -13,7 +13,7 @@ function createWindow(): void {
     resizable: true,    // 窗口可调整大小
     minimizable: false,    // 窗口不能最小化
     maximizable: false,    // 窗口不能最大化
-    frame: true, // 去掉窗口边框
+    frame: false, // 去掉窗口边框
     transparent: true, // 使窗口透明
     alwaysOnTop: true, // 窗口总是在最前
     autoHideMenuBar: true,
@@ -29,7 +29,7 @@ function createWindow(): void {
   mainWindow.setContentSize(100, 100);
   mainWindow.on('ready-to-show', () => {
     mainWindow.show();
-    mainWindow.setIgnoreMouseEvents(true);
+    // mainWindow.setIgnoreMouseEvents(true);
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -38,10 +38,9 @@ function createWindow(): void {
   })
 
   ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
-      console.log(event)
       console.log(ignore,options)
       console.log(mainWindow.getSize())
-      mainWindow.setIgnoreMouseEvents(ignore);
+      // mainWindow.setIgnoreMouseEvents(ignore);
   });
 
   // 拖拽功能实现 ------------------------------------------------------
