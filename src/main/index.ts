@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, desktopCapturer, ipcMain, screen, globalShortcut } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, screen } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -6,14 +6,14 @@ import icon from '../../resources/icon.png?asset'
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 100,
-    height: 100,
+    width: 0,
+    height: 0,
     show: false,
     movable: true,    // 窗口可移动
     resizable: true,    // 窗口可调整大小
     minimizable: false,    // 窗口不能最小化
     maximizable: false,    // 窗口不能最大化
-    // frame: false, // 去掉窗口边框
+    frame: true, // 去掉窗口边框
     transparent: true, // 使窗口透明
     alwaysOnTop: true, // 窗口总是在最前
     autoHideMenuBar: true,
@@ -38,7 +38,9 @@ function createWindow(): void {
   })
 
   ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
+      console.log(event)
       console.log(ignore,options)
+      console.log(mainWindow.getSize())
       mainWindow.setIgnoreMouseEvents(ignore);
   });
 
@@ -48,17 +50,17 @@ function createWindow(): void {
     x: 0,
     y: 0
   }
-  let moveIntervalId: NodeJS.Timeout | null = null;
   // 移动窗口----start
+  let isMoving = false;
   ipcMain.on('winMove-start', () => {
     const winPosition = mainWindow.getPosition()
     const cursorPosition = screen.getCursorScreenPoint() //开始时鼠标位置
     winXY.x = cursorPosition.x - winPosition[0]
     winXY.y = cursorPosition.y - winPosition[1]
-    if (moveIntervalId){
-      clearInterval(moveIntervalId)
-    }
+
+    isMoving = true;
     const moveWindow = () => {
+      if (!isMoving) return;
       const cursorPosition = screen.getCursorScreenPoint();
       const newX = cursorPosition.x - winXY.x;
       const newY = cursorPosition.y - winXY.y;
@@ -69,35 +71,9 @@ function createWindow(): void {
   })
   // 移动窗口----end
   ipcMain.on('winMove-end', () => {
-    if (moveIntervalId){
-      clearInterval(moveIntervalId)
-    }
+
+    isMoving=false;
   })
-  function refreshWinPosition() {
-    const cursorPosition = screen.getCursorScreenPoint() //移动后鼠标位置
-    mainWindow.setPosition(cursorPosition.x - winXY.x, cursorPosition.y - winXY.y, true) //设置窗口位置
-  }
-  // ------------------------------------------------------------------------------------------------------------
-
-  let shortcutintervalId: NodeJS.Timeout | null = null; // 定时器ID
-  // globalShortcut.register('=', () => {
-  //   if (!shortcutintervalId) {
-  //     shortcutintervalId = setInterval(() => {
-  //       const [width, height] = mainWindow.getSize();
-  //       mainWindow.setSize(width + 5, height + 5); // 增大窗口大小
-  //     }, 50); // 每 100 毫秒增大窗口
-  //   }
-  // });
-
-  // // 减小窗口尺寸快捷键：Ctrl + -
-  // globalShortcut.register('-', () => {
-  //   if (!shortcutintervalId) {
-  //     shortcutintervalId = setInterval(() => {
-  //       const [width, height] = mainWindow.getSize();
-  //       mainWindow.setSize(width - 5, height - 5); // 减小窗口大小
-  //     }, 50); // 每 100 毫秒增大窗口
-  //   }
-  // });
 
   ipcMain.on('resize-window', (_, delta) => {
     const [width, height] = mainWindow.getSize();
