@@ -6,18 +6,19 @@ import icon from '../../resources/icon.png?asset'
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 0,
-    height: 0,
+    // width: 0,
+    // height: 0,
     show: false,
-    movable: true,    // 窗口可移动
-    resizable: true,    // 窗口可调整大小
+    movable: false,    // 窗口可移动
+    // resizable: true,    // 窗口可调整大小
     minimizable: false,    // 窗口不能最小化
     maximizable: false,    // 窗口不能最大化
     frame: false, // 去掉窗口边框
     transparent: true, // 使窗口透明
     alwaysOnTop: true, // 窗口总是在最前
     autoHideMenuBar: true,
-    fullscreenable: false,
+    fullscreenable: true,
+    fullscreen: true, // 添加全屏属性
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -26,9 +27,10 @@ function createWindow(): void {
       contextIsolation: false,
     }
   })
-  mainWindow.setContentSize(100, 100);
+  // mainWindow.setContentSize(100, 100);
   mainWindow.on('ready-to-show', () => {
     mainWindow.show();
+    
     // mainWindow.setIgnoreMouseEvents(true);
   })
 
@@ -38,6 +40,7 @@ function createWindow(): void {
   })
 
   ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
+      event
       console.log(ignore,options)
       console.log(mainWindow.getSize())
       // mainWindow.setIgnoreMouseEvents(ignore);

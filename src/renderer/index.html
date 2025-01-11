@@ -22,7 +22,7 @@
       width: 100%;
       height: 100%;
       background-color: rgba(0, 128, 255, 0.182); /* 半透明背景 */
-      border-radius: 50%; 
+      border-radius: 0%; 
       display: flex;
       justify-content: center;
       align-items: center;
@@ -47,13 +47,16 @@
     svgElement.addEventListener('mouseleave', () => {
       ipcRenderer.send('set-ignore-mouse-events', true, { forward: true }); // 穿透透明区域
     });
+
+    // 按下鼠标
     svgElement.addEventListener('mousedown', (e) => {
       if (e.buttons == 1) {
         winMoveStart() //开始刷新屏幕位置
+        console.log(e.clientX, e.clientY)
         svgElement.addEventListener('mousemove', mousemove)
       }
     })
-    //按下松开鼠标鼠标
+    //松开鼠标
     svgElement.addEventListener('mouseup', () => {
       winMoveEnd() //停止刷新屏幕位置
       svgElement.removeEventListener('mousemove', mousemove)
@@ -67,11 +70,22 @@
     }
 
     //补丁:鼠标在窗口外松开不触发mouseup，鼠标回到窗口没按着左键停止
-    function mousemove(e) {
-      if (e.buttons != 1) {
-        winMoveEnd()
-        svgElement.removeEventListener('mousemove', mousemove)
+    // function mousemove(e) {
+    //   if (e.buttons != 1) {
+    //     winMoveEnd()
+    //     svgElement.removeEventListener('mousemove', mousemove)
+    //   }
+    // }
+    svgElement.addEventListener('mousedown', (e) => {
+      if (e.buttons == 2) { // 检查是否按下右键，2 表示右键
+        // winMoveStart() //开始刷新屏幕位置
+        console.log(e.clientX, e.clientY);
+        svgElement.addEventListener('mousemove', mousemove);
       }
+    });
+    function mousemove(event) {
+      // 这里可以添加鼠标移动时的具体操作，例如更新元素位置等
+      console.log("鼠标正在移动，当前位置：", event.clientX, event.clientY);
     }
     let resizeInterval;
 
