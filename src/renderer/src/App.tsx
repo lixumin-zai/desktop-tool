@@ -52,7 +52,7 @@ function App(): JSX.Element {
           })
           .then(response => response.json())
           .then(data => {
-          console.log('Response from server:', data);
+            data.result
           })
           .catch(error => {
           console.error('Error:', error);
